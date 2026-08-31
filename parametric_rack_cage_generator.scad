@@ -210,7 +210,7 @@ cage_top_geometry = "Open"; // ["Open":"Open Top - DEFAULT","Lidded":"Lidded, Op
 cage_top_lid_screw_holes = 2.50; // [0.00:"Clearance Holes",3.15:"  M3 Clearance (3.15mm hole)", 4.20:"  M4 Clearance (4.2mm hole)", 5.25:"  M5 Clearance (5.25mm hole)", 6.30:"  M6 Clearance (6.3mm hole)", 2.95:"  4-40 Clearance (.1160 in. hole)", 3.66:"  6-32 Clearance (.144 in. hole)",4.31:"  8-32 Clearance (.1695 in. hole)", 4.98:"  10-24/10-32 Clearance (.1960 in. hole)", 6.53:"  1/4-20 Clearance (.257 in. hole)", 0.00:" ",0.00:"Tapped/Threadcutting Holes",2.50:"  M3 Tapped/Threadcutting (2.5mm hole) - DEFAULT", 3.50:"  M4 Tapped/Threadcutting (3.5mm hole)", 4.40:"  M5 Tapped/Threadcutting (4.4mm hole)", 5.00:"  M6 Tapped/Threadcutting (5.0mm hole)", 2.07:"  4-40 Tapped/Threadcutting (0.0813 in. hole)", 2.53:"  6-32 Tapped/Threadcutting (.0997 in. hole)", 3.19:"  8-32 Tapped/Threadcutting (.1257 in. hole)", 3.53:"  10-24/10-32 Tapped/Threadcutting (.1389 in. hole)", 4.79:"  1/4-20 Tapped/Threadcutting (.1887 in. hole)",0.00:" ",0.00:"Heat-Set Inserts",3.98:"  M3 Heat-Set (4mm hole)", 4.10:"  M3 Heat-Set (4.1mm hole)", 4.80:"  M3 Heat-Set (4.8mm hole)", 5.60:"  M4 Heat-Set (5.6mm hole)", 5.70:"  M4 Heat-Set (5.7mm hole)", 6.40:"  M5 Heat-Set (6.4mm hole)", 6.50:"  M5 Heat-Set (6.5mm hole)", 8.00:"  M6 Heat-Set (8mm hole)", 8.10:"  M6 Heat-Set (8.1mm hole)", 3.99:"  4-40 Heat-Set (0.157 in. hole)", 4.03:"  4-40 Heat-Set (0.159 in. hole)", 4.76:"  6-32 Heat-Set (0.1875 in. hole)",  4.85:"  6-32 Heat-Set (0.191 in. hole)", 5.61:"  8-32 Heat-Set (0.221 in. hole)", 5.74:"  8-32 Heat-Set (0.226 in. hole)", 6.41:"  10-24/10-32 Heat-Set (0.252 in. hole)", 6.51:"  10-24/10-32 Heat-Set (0.256 in. hole)", 8.01:"  1/4-20 Heat-Set (0.315 in. hole)", 8.11:"  1/4-20 Heat-Set (0.319 in. hole)"]
 
 // Cage BOTTOM geometry - make the bottom of the cage, solid, open, or ventilated. - WARNING: Grid options may require signifiantly longer time to generate the cage, and can dramatically increase print time. - WARNING: Selecting "no bottom at all" removes the entire bottom along with its support structure, which can reduce the strength of the cage.
-cage_bottom_geometry = "Open"; // ["Open":"Open Bottom - DEFAULT","Solid":"Solid Bottom (No Ventilation Cutout)","Structure":"Structure Only, Completely Open","None":"No Bottom At All - CAUTION","":"","":"Ventilation Grids","Hex":"  Hexagonal Grid","Round":"  Round Holes","Staggered":"  Tiled Holes In Offset Pattern","Grid":"  Square Holes in a Grid Pattern","Isometric":"  Isometric/Diamond Grid","Triangle":"  Triangle/Isometric Grid","Octagon":"  Octagonal Holes"]
+cage_bottom_geometry = "Open"; // ["Open":"Open Bottom - DEFAULT","Solid":"Solid Bottom (No Ventilation Cutout)","Structure":"Structure Only, Completely Open","None":"No Bottom At All - CAUTION","":"","Ventilation Grids","Hex":"  Hexagonal Grid","Round":"  Round Holes","Staggered":"  Tiled Holes In Offset Pattern","Grid":"  Square Holes in a Grid Pattern","Isometric":"  Isometric/Diamond Grid","Triangle":"  Triangle/Isometric Grid","Octagon":"  Octagonal Holes","VESA":"  VESA 100x100 Slots (Solid Bottom)"]
 
 //// Cage BOTTOM mounting studs - up to twelve stud locations can be defined by providing their coordinates in mm. Studs are automatically set up as tapered cones for better strength, with walls that are 2.5x the screw diameter. - NOTE: Format must be [x_1,y_1,x_2,y_2, etc.] and the zero point is at the front-left corner of the bottom of the cage. - NOTE: Requires that the cage bottom geometry be set to "solid."
 //cage_bottom_studs = [];
@@ -2955,6 +2955,23 @@ module create_device_cage(oversize=false)
                                 }
                                 else if (cage_bottom_geometry_override == "Structure")
                                     ventilated_side_plate(panel_depth, top_bottom_panel_width, plate_thickness + expand, 2 + support_cage_base_size, 0.001, 0.001, extra_support);
+                                else if (cage_bottom_geometry_override == "VESA")
+                                {
+                                    difference()
+                                    {
+                                        two_rounded_corner_plate(panel_depth, top_bottom_panel_width, plate_thickness + expand, 0.001);
+                                        for (vesa_x = [-50, 50])
+                                            for (vesa_y = [-52.5, 52.5])
+                                                translate([vesa_x, vesa_y, 0])
+                                                    hull()
+                                                    {
+                                                        translate([0, -7.5, 0])
+                                                            cylinder(h=plate_thickness + expand + 2, d=4.5, center=true, $fn=this_fn);
+                                                        translate([0, 7.5, 0])
+                                                            cylinder(h=plate_thickness + expand + 2, d=4.5, center=true, $fn=this_fn);
+                                                    }
+                                    }
+                                }
                                 else
                                 {
                                     ventilated_side_plate(panel_depth, top_bottom_panel_width, plate_thickness + expand, 8 + support_cage_base_size, 0.001, 5, extra_support);
