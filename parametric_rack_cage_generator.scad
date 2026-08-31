@@ -146,6 +146,9 @@ faceplate_rounded_corners = 0.0; // [0.0:0.5:50]
 // Add a 1mm retention lip around the front opening and recess the device 1mm farther into the cage. This will help capture the device and reduce accidental removal. - NOTE: the device_clearance setting also applies to this retention lip, and too large of a clearance setting may make this ineffective.
 add_retention_lip = false;
 
+// Add a bottom lip at the bottom edge of the cage opening. This creates a ledge that can help retain the device or provide a resting surface. - NOTE: This is only applied when a cage opening is present.
+bottom_lip_height = 0.0; // [0.0:0.5:20.0]
+
 // Closed faceplate, aka enclosure mode - this option generates a cage without an opening in the faceplate for a device. Useful for creating custom rackmount enclosures. - WARNING: this option disables sanity checks for the positioning of faceplate modifications relative to cage edges - care must be taken to prevent placing a modification in such a way that it overlaps the cage proper. - NOTE: It may be advisable to print the cage separately, especially if it will have closed sides.
 closed_faceplate = false;
 
@@ -3307,6 +3310,16 @@ module create_completed_cage(height_required_in_units, safe_left_side_mod_horizo
                         faceplate_mod_subtraction(centered_mod_type, 0, 0, centered_mod_width, centered_mod_height, centered_mod_grid_rows, centered_mod_grid_columns);
 
                 } // Inner difference end
+
+
+                // Bottom lip - adds a lip at the bottom edge of the cage opening.
+                // The lip extends upward into the opening by bottom_lip_height, and overlaps
+                // the solid faceplate material below by 0.5mm to ensure a single-piece union.
+                if ((bottom_lip_height > 0.0) && (faceplate_only == 0.0) && (!closed_faceplate))
+                    translate([0 - ((cage_width / 2) * (number_of_devices - 1)) - ((multiple_device_gap / 2) * (number_of_devices - 1)) + cage_horizontal_offset, cage_vertical_offset, plate_thickness / 2])
+                        for (index = [1:number_of_devices])
+                            translate([((cage_width + multiple_device_gap) * (index - 1)), (device_height + device_clearance) / 2 - bottom_lip_height / 2 + 0.25, 0])
+                                cube([device_width + device_clearance + 1, bottom_lip_height + 0.5, plate_thickness], center=true);
 
 
                 // Mounting holes (subrack support) - centered - additions
